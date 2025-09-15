@@ -9,6 +9,19 @@ import { EmployeeComponent } from '../components/EmployeeComponent';
 export default function DashboardRoot() {
   const { user, isLoggedIn, hasHydrated } = useAuthStore();
   const router = useRouter();
+  // ...existing code...
+
+  useEffect(() => {
+    if (!hasHydrated) return;
+    if (!isLoggedIn || !user) {
+      router.replace('/login');
+      return;
+    }
+    if (user.isInitialPassword) {
+      router.replace('/changepassword');
+      return;
+    }
+  }, [hasHydrated, isLoggedIn, user, router]);
 
   if (!hasHydrated) {
     return (
@@ -18,19 +31,7 @@ export default function DashboardRoot() {
     );
   }
 
-  // Redirect to login if not authenticated
-  if (!isLoggedIn || !user) {
-    useEffect(() => {
-      router.replace('/login');
-    }, [router]);
-    return null;
-  }
-
-  // If user needs to change password, redirect
-  if (user.isInitialPassword) {
-    useEffect(() => {
-      router.replace('/changepassword');
-    }, [router]);
+  if (!isLoggedIn || !user || user.isInitialPassword) {
     return null;
   }
 

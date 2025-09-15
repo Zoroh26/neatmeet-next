@@ -668,7 +668,7 @@ const Employees = () => {
                               ) : (
                                   <>
                                       <FaUserPlus />
-                                      Create User
+                                      Create Employee
                                   </>
                               )}
                           </button>

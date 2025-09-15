@@ -1,6 +1,6 @@
 
 import { create } from 'zustand';
-import { login as loginApi, logout as logoutApi, getMe, changePassword as changePasswordApi } from '../services/api';
+import { login as loginApi, logout as logoutApi, changePassword as changePasswordApi } from '../services/api';
 
 type User = {
   id: string;
@@ -82,37 +82,26 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   checkSession: async () => {
     set({ loading: true, error: null });
     try {
-      const response = await getMe();
-      const user = response.data.data;
-      // Get token and user data from sessionStorage
+      // Only use sessionStorage for session validation
       let token = '';
-      let sessionUserId = '';
+      let sessionUser = null;
       if (typeof window !== 'undefined') {
         const sessionRaw = sessionStorage.getItem('currentUser');
         if (sessionRaw) {
           const sessionData = JSON.parse(sessionRaw);
           token = sessionData.token;
-          sessionUserId = sessionData.user?.id || '';
+          sessionUser = sessionData.user;
         }
       }
-      
-      // Prefer sessionStorage user ID (from login) over API response user ID
-      const userId = sessionUserId || user.id || user.user_id || (user as any)._id;
-      console.log('🔍 Frontend AUTH CHECKSESSION: user object =', user);
-      console.log('🔍 Frontend AUTH CHECKSESSION: sessionUserId =', sessionUserId);
-      console.log('🔍 Frontend AUTH CHECKSESSION: API user.id =', user.id);
-      console.log('🔍 Frontend AUTH CHECKSESSION: final userId extracted =', userId);
-      
-      if (!userId) {
-        throw new Error('No valid user ID found in checkSession response');
+      if (!sessionUser || !token) {
+        throw new Error('No valid session found');
       }
-      
       set({
         user: {
-          id: userId,
-          name: user.name,
-          role: user.role,
-          isInitialPassword: user.isInitialPassword ?? false,
+          id: sessionUser.id,
+          name: sessionUser.name,
+          role: sessionUser.role,
+          isInitialPassword: sessionUser.isInitialPassword ?? false,
           token,
         },
         isLoggedIn: true,

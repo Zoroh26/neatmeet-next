@@ -134,15 +134,7 @@ export const EmployeeComponent: React.FC = () => {
                 </div>
             </div>
 
-            {/* Bookings Section */}
-            <div className="mt-12">
-                <h2 className={classes.SectionTitle}>All Bookings</h2>
-                <BookingList
-                    bookings={bookings}
-                    bookingsLoading={bookingsLoading}
-                    getRoomById={getRoomById}
-                />
-            </div>
+            
         </div>
     );
 };

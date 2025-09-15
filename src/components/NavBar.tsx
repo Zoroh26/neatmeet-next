@@ -362,8 +362,7 @@ const NavBar = () => {
                                     <span>{item.name}</span>
                                 </Link>
                             ))}
-                            
-                            {/* Mobile User Info */}
+                            {/* Mobile User Info and Actions */}
                             <div className="border-t-2 border-black pt-4 mt-4">
                                 {hasHydrated && user ? (
                                     <div className="space-y-2">
@@ -371,10 +370,33 @@ const NavBar = () => {
                                             <FaUserCircle className="text-red-500 text-xl" />
                                             {user.name} ({user.role})
                                         </div>
+                                        {/* My Bookings */}
                                         <button
                                             onClick={() => {
-                                                handleLogout()
-                                                setIsMenuOpen(false)
+                                                router.push('/mybookings');
+                                                setIsMenuOpen(false);
+                                            }}
+                                            className="w-full flex items-center gap-2 px-4 py-2 border-2 border-black font-black bg-white hover:bg-gray-100 text-black uppercase text-sm"
+                                        >
+                                            <FaCalendarAlt className="text-red-500" />
+                                            My Bookings
+                                        </button>
+                                        {/* Change Password */}
+                                        <button
+                                            onClick={() => {
+                                                router.push('/changepassword');
+                                                setIsMenuOpen(false);
+                                            }}
+                                            className="w-full flex items-center gap-2 px-4 py-2 border-2 border-black font-black bg-white hover:bg-gray-100 text-black uppercase text-sm"
+                                        >
+                                            <FaKey className="text-red-500" />
+                                            Change Password
+                                        </button>
+                                        {/* Logout */}
+                                        <button
+                                            onClick={() => {
+                                                handleLogout();
+                                                setIsMenuOpen(false);
                                             }}
                                             className="w-full bg-red-500 text-white px-4 py-2 border-2 border-black font-black hover:bg-red-600 transition-colors shadow-[2px_2px_0px_0px_#000] uppercase text-sm flex items-center justify-center gap-2"
                                         >
