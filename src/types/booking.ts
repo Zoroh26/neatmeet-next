@@ -1,5 +1,6 @@
 export interface Booking {
     _id: string;
+    id: string;
     roomId: string;
     roomName: string;
     startTime: Date;

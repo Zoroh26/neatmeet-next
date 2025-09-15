@@ -80,13 +80,25 @@ const BookingList: React.FC<BookingListProps> = ({
                     {upcomingBookings.map(booking => {
                       if (!booking || !booking.roomId) return null;
                       const room = getRoomById(booking.roomId);
-                      
-                      // Ensure we're using proper Date objects for comparisons
                       const startTime = booking.startTime instanceof Date ? booking.startTime : new Date(booking.startTime);
-                      const isToday = startTime.toDateString() === now.toDateString();
-                      const isTomorrow = startTime.toDateString() === new Date(now.getTime() + 24 * 60 * 60 * 1000).toDateString();
+                      const endTime = booking.endTime instanceof Date ? booking.endTime : new Date(booking.endTime);
+                      // Hydration-safe date formatting
+                      const [isToday, setIsToday] = React.useState(false);
+                      const [isTomorrow, setIsTomorrow] = React.useState(false);
+                      const [dateStr, setDateStr] = React.useState('');
+                      const [startStr, setStartStr] = React.useState('');
+                      const [endStr, setEndStr] = React.useState('');
+                      const [createdStr, setCreatedStr] = React.useState('');
+                      React.useEffect(() => {
+                        const now = new Date();
+                        setIsToday(startTime.toDateString() === now.toDateString());
+                        setIsTomorrow(startTime.toDateString() === new Date(now.getTime() + 24 * 60 * 60 * 1000).toDateString());
+                        setDateStr(startTime.toLocaleDateString());
+                        setStartStr(startTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}));
+                        setEndStr(endTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}));
+                        setCreatedStr((booking.createdAt instanceof Date ? booking.createdAt : new Date(booking.createdAt)).toLocaleDateString());
+                      }, [startTime, endTime, booking.createdAt]);
                       const canEdit = showActions && currentUserId && booking.userId === currentUserId;
-                      
                       return (
                         <div key={booking._id} className={classes.BookingCard}>
                           {/* Status Badge */}
@@ -107,7 +119,7 @@ const BookingList: React.FC<BookingListProps> = ({
                             </h4>
                             <div className="text-sm font-bold text-black bg-green-600 text-white border-2 border-black px-2 py-1 inline-flex items-center gap-2">
                               <FaClock />
-                              {startTime.toLocaleDateString()} • {startTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} - {(booking.endTime instanceof Date ? booking.endTime : new Date(booking.endTime)).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                              {dateStr} • {startStr} - {endStr}
                             </div>
                           </div>
                           {booking.description && (
@@ -129,10 +141,8 @@ const BookingList: React.FC<BookingListProps> = ({
                             </div>
                           )}
                           <div className="text-xs font-bold text-gray-600 border-t-2 border-gray-300 pt-2">
-                            Booked by: {booking.bookedBy} • {(booking.createdAt instanceof Date ? booking.createdAt : new Date(booking.createdAt)).toLocaleDateString()}
+                            Booked by: {booking.bookedBy} • {createdStr}
                           </div>
-                          
-                          
                         </div>
                       );
                     })}
@@ -168,12 +178,24 @@ const BookingList: React.FC<BookingListProps> = ({
                     {pastBookings.map(booking => {
                       if (!booking || !booking.roomId) return null;
                       const room = getRoomById(booking.roomId);
-                      
-                      // Ensure we're using proper Date objects for comparisons
                       const endTime = booking.endTime instanceof Date ? booking.endTime : new Date(booking.endTime);
                       const startTime = booking.startTime instanceof Date ? booking.startTime : new Date(booking.startTime);
-                      const wasToday = endTime.toDateString() === now.toDateString();
-                      const wasYesterday = endTime.toDateString() === new Date(now.getTime() - 24 * 60 * 60 * 1000).toDateString();
+                      // Hydration-safe date formatting
+                      const [wasToday, setWasToday] = React.useState(false);
+                      const [wasYesterday, setWasYesterday] = React.useState(false);
+                      const [dateStr, setDateStr] = React.useState('');
+                      const [startStr, setStartStr] = React.useState('');
+                      const [endStr, setEndStr] = React.useState('');
+                      const [createdStr, setCreatedStr] = React.useState('');
+                      React.useEffect(() => {
+                        const now = new Date();
+                        setWasToday(endTime.toDateString() === now.toDateString());
+                        setWasYesterday(endTime.toDateString() === new Date(now.getTime() - 24 * 60 * 60 * 1000).toDateString());
+                        setDateStr(startTime.toLocaleDateString());
+                        setStartStr(startTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}));
+                        setEndStr(endTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}));
+                        setCreatedStr((booking.createdAt instanceof Date ? booking.createdAt : new Date(booking.createdAt)).toLocaleDateString());
+                      }, [startTime, endTime, booking.createdAt]);
                       return (
                         <div key={booking._id} className={classes.BookingCard}>
                           {/* Completed Badge */}
@@ -188,7 +210,7 @@ const BookingList: React.FC<BookingListProps> = ({
                             </h4>
                             <div className="text-sm font-bold text-white bg-gray-500 border-2 border-black px-2 py-1 inline-flex items-center gap-2">
                               <FaClock />
-                              {wasToday ? 'Today' : wasYesterday ? 'Yesterday' : startTime.toLocaleDateString()} • {startTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} - {endTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                              {wasToday ? 'Today' : wasYesterday ? 'Yesterday' : dateStr} • {startStr} - {endStr}
                             </div>
                           </div>
                           {booking.description && (
@@ -210,7 +232,7 @@ const BookingList: React.FC<BookingListProps> = ({
                             </div>
                           )}
                           <div className="text-xs font-bold text-gray-500 border-t-2 border-gray-300 pt-2">
-                            Booked by: {booking.bookedBy} • {(booking.createdAt instanceof Date ? booking.createdAt : new Date(booking.createdAt)).toLocaleDateString()}
+                            Booked by: {booking.bookedBy} • {createdStr}
                           </div>
                         </div>
                       );

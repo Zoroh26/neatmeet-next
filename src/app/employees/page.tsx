@@ -1,16 +1,19 @@
-'use client';
+"use client";
 import React, { useEffect, useState } from "react";
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { FaTimes, FaUsers, FaUserPlus, FaSpinner, FaEdit, FaTrash } from 'react-icons/fa';
 import Modal from 'react-modal';
 import { GenericTable } from '../../components/GenericTable';
 import type { Employee } from '../../types/index';
 import UserService from '../../services/UserServices';
-import { useAuth } from '../../context/AuthContext';
+import { useAuthStore } from '../../store/authStore';
 import { useQuery } from "@tanstack/react-query";
+import { useEmployeeStore } from '../../store/employeeStore';
 import { ColumnDef } from "@tanstack/react-table";
 
 const classes = {
-    Container: 'h-full bg-white  relative overflow-hidden',
+    Container: 'h-full bg-white  relative overflow-hidden pt-16',
     BackgroundElements: 'absolute inset-0 pointer-events-none',
     BgSquare1: 'absolute top-20 left-10 w-16 h-16 bg-red-500 border-4 border-black transform rotate-45 opacity-30',
     BgSquare2: 'absolute bottom-20 right-20 w-12 h-12 bg-red-500 border-4 border-black transform -rotate-12 opacity-20',
@@ -82,13 +85,26 @@ const Employees = () => {
     return await UserService.getAllUsers();
   }
 
-  const { data: allEmployees, isLoading, error, refetch } = useQuery({
-      queryKey: ['employees'],
-      queryFn: fetchEmployees,
-  });
 
     // Client-side filtering and pagination
-    const filteredEmployees = (allEmployees || []).filter((emp: Employee) => {
+        const { setEmployees, employees } = useEmployeeStore();
+        const {
+            data: allEmployees,
+            isLoading,
+            error,
+            refetch
+        } = useQuery({
+            queryKey: ['employees'],
+            queryFn: fetchEmployees,
+        });
+
+        useEffect(() => {
+            if (Array.isArray(allEmployees)) {
+                setEmployees(allEmployees);
+            }
+        }, [allEmployees, setEmployees]);
+
+        const filteredEmployees = ((employees && employees.length) ? employees : (Array.isArray(allEmployees) ? allEmployees : [])).filter((emp: Employee) => {
         let matches = true;
         if (globalFilter) {
             const search = globalFilter.toLowerCase();
@@ -126,7 +142,7 @@ const Employees = () => {
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [employeeToDelete, setEmployeeToDelete] = useState<Employee | null>(null);
-  const { user } = useAuth();
+    const { user } = useAuthStore();
   
   const [formData, setFormData] = useState<AddUserFormData>({
       name: '',
@@ -137,15 +153,10 @@ const Employees = () => {
       designation: '',
   });
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      setTimeout(() => {
-        try {
-          Modal.setAppElement('body');
-        } catch (e) {}
-      }, 0);
-    }
-  }, []);
+    useEffect(() => {
+        // Always run client-only modal setup in useEffect
+        Modal.setAppElement('body');
+    }, []);
 
   const columns: ColumnDef<Employee>[] = [
     {
@@ -310,7 +321,9 @@ const Employees = () => {
               
               await UserService.updateUser(editingUserId, updateData);
               
-              setMessage({ type: 'success', text: 'User updated successfully!' });
+                            toast.success('🎉 User updated successfully!', {
+                                className: 'toast-success',
+                            });
               
           } else {
               await UserService.createUser({
@@ -321,7 +334,9 @@ const Employees = () => {
                   password: formData.password,
               } as any);
 
-              setMessage({ type: 'success', text: 'User created successfully!' });
+                            toast.success('🎉 User created successfully!', {
+                                className: 'toast-success',
+                            });
           }
 
           refetch();
@@ -342,7 +357,9 @@ const Employees = () => {
               errorMessage = 'Network error - please check your connection';
           }
           
-          setMessage({ type: 'error', text: errorMessage });
+                    toast.error(`❌ ${errorMessage}`, {
+                        className: 'toast-error',
+                    });
       } finally {
           setLoading(false);
       }
@@ -372,7 +389,9 @@ const Employees = () => {
           const userId = employeeToDelete.id || (employeeToDelete as any)._id;
           await UserService.deleteUser(userId);
           refetch();
-          setMessage({ type: 'success', text: `${employeeToDelete.name} deleted successfully` });
+                toast.success(`🎉 ${employeeToDelete.name} deleted successfully`, {
+                    className: 'toast-success',
+                });
           setTimeout(() => setMessage(null), 3000);
           
       } catch (error: any) {
@@ -386,7 +405,9 @@ const Employees = () => {
               errorMessage = 'Network error - please check your connection';
           }
           
-          setMessage({ type: 'error', text: errorMessage });
+                    toast.error(`❌ ${errorMessage}`, {
+                        className: 'toast-error',
+                    });
       } finally {
           setIsDeleteModalOpen(false);
           setEmployeeToDelete(null);
@@ -427,11 +448,18 @@ const Employees = () => {
                   </button>
               </div>
 
-              {message && (
-                  <div className={message.type === 'error' ? classes.ErrorMessage : classes.SuccessMessage}>
-                      {message.text}
-                  </div>
-              )}
+                            <ToastContainer
+                                position="top-right"
+                                autoClose={3000}
+                                hideProgressBar={false}
+                                newestOnTop={false}
+                                closeOnClick
+                                rtl={false}
+                                pauseOnFocusLoss
+                                draggable
+                                pauseOnHover
+                                className="neo-brutalism-toast-container pt-16"
+                            />
 
                             <div className="flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
                                 <input
@@ -478,16 +506,28 @@ const Employees = () => {
                 <div className="flex items-center gap-2">
                   
                   <button
-                    className={classes.CancelButton}
-                    onClick={() => setPageIndex(pageIndex - 1)}
-                    disabled={pageIndex === 0}
+                                        className={
+                                            pageIndex === 0
+                                                ? `${classes.CancelButton} bg-gray-300 text-gray-500 cursor-not-allowed`
+                                                : classes.CancelButton
+                                        }
+                                        onClick={() => setPageIndex(pageIndex - 1)}
+                                        disabled={pageIndex === 0}
                   >
                     {'<'}
                   </button>
                   <button
-                    className={classes.CancelButton}
-                    onClick={() => setPageIndex(pageIndex + 1)}
-                    disabled={pageIndex >= totalPages - 1}
+                                        className={
+                                            pageIndex >= totalPages - 1 ||
+                                            filteredEmployees.slice((pageIndex + 1) * pageSize, (pageIndex + 2) * pageSize).length === 0
+                                                ? `${classes.CancelButton} bg-gray-300 text-gray-500 cursor-not-allowed`
+                                                : classes.CancelButton
+                                        }
+                                        onClick={() => setPageIndex(pageIndex + 1)}
+                                        disabled={
+                                            pageIndex >= totalPages - 1 ||
+                                            filteredEmployees.slice((pageIndex + 1) * pageSize, (pageIndex + 2) * pageSize).length === 0
+                                        }
                   >
                     {'>'}
                   </button>

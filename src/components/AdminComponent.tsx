@@ -14,7 +14,7 @@ import Modal from 'react-modal';
 import { useRouter } from 'next/navigation';
 
 const classes = {
-    Container: 'sm:p-8 p-4 bg-bg-primary min-h-screen',
+    Container: 'sm:p-8 p-4 bg-bg-primary min-h-screen pt-16',
     Header: 'mb-8',
     Title: 'sm:text-4xl text-3xl font-black text-text-primary mb-2 uppercase tracking-widest',
     Subtitle: 'text-lg  text-text-secondary font-bold uppercase tracking-wide mb-8',
@@ -89,7 +89,7 @@ export const AdminComponent: React.FC = () => {
     }, []);
 
     const stats = [
-        {
+         {
             icon: <FaUsers className="text-blue-500" />,
             number: employees.length,
             label: 'Total Employees',
@@ -101,14 +101,15 @@ export const AdminComponent: React.FC = () => {
         },
         {
             icon: <FaCalendarAlt className="text-orange-500" />,
-            number: bookings.filter(b => b.status === 'active').length,
-            label: 'Active Bookings',
+            number: bookings.filter(b => new Date(b.startTime) > new Date()).length,
+            label: 'Upcoming Meetings',
         },
         {
             icon: <FaClock className="text-purple-500" />,
-            number: bookings.filter(b => new Date(b.startTime) > new Date()).length,
-            label: 'Upcoming Bookings',
+            number: bookings.filter(b => new Date(b.startTime) <= new Date()).length,
+            label: 'Past Meetings',
         },
+       
     ];
 
     const quickActions = [
@@ -188,16 +189,7 @@ export const AdminComponent: React.FC = () => {
                 </div>
             </div>
 
-            {/* Recent Bookings */}
-            <div className={classes.RecentActivity}>
-                <h2 className={classes.SectionTitle}>Recent Bookings</h2>
-                <BookingList 
-                    bookings={bookings.slice(0, 10)} 
-                    bookingsLoading={loading}
-                    getRoomById={(id: string) => rooms.find(room => room.id === id)}
-                    showActions={true}
-                />
-            </div>
+            
         </div>
     );
 };

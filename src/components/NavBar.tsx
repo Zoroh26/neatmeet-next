@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
-import { useAuth } from '../context/AuthContext'
+// Removed legacy useAuth import
 import { 
     FaHome, 
     FaUsers, 
@@ -13,17 +13,13 @@ import {
     FaSignOutAlt,
     FaUser, 
     FaKey, 
-    FaUserEdit, 
-    FaMoon, 
-    FaSun, 
     FaChevronDown,
-    FaCog 
 } from 'react-icons/fa'
 import {useAuthStore} from '../store/authStore'
 
 const classes = {
     // Main navbar styles
-    main: 'bg-white border-b-4 border-black ',
+    main: 'bg-white border-b-4 border-black fixed top-0 left-0 w-full z-50',
     container: 'max-w-[2000px] mx-auto px-4 sm:px-6 lg:px-8',
     navWrapper: 'flex justify-between items-center h-16',
     
@@ -81,7 +77,7 @@ const NavBar = () => {
     const pathname = usePathname()
     const dropdownRef = useRef<HTMLDivElement>(null)
     const {user, isLoggedIn, logout, hasHydrated} = useAuthStore()
-    const { logout: legacyLogout } = useAuth()
+    // Removed legacy logout
 
     // Initialize auth store from session on mount
     // checkSession is now called globally in ClientLayout
@@ -190,7 +186,7 @@ const NavBar = () => {
         
         // Clear both auth systems
         logout(); // Zustand store
-        legacyLogout(); // Legacy context
+    logout(); // Zustand authStore logout
         
         // Force immediate redirect
         router.replace('/login');

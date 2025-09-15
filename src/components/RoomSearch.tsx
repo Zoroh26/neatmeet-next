@@ -4,6 +4,7 @@ import { FaSearch, FaTimes, FaClock, FaCalendar, FaSpinner, FaDoorOpen, FaUsers,
 import { MdMeetingRoom } from 'react-icons/md';
 import DatePicker from 'react-datepicker';
 import RoomService from '../services/RoomServices';
+import { RoomSearchTimeSlotDisplay } from './RoomSearchTimeSlotDisplay';
 import 'react-datepicker/dist/react-datepicker.css';
 
 interface AvailableRoom {
@@ -410,18 +411,7 @@ const RoomAvailabilitySearch: React.FC<RoomAvailabilitySearchProps> = ({ onBookR
                                     Found {searchState.totalAvailable} Available Rooms
                                 </h3>
                                 {searchState.timeSlot && (
-                                    <p className={classes.ResultsSubtitle}>
-                                        {new Date(searchState.timeSlot.start_time).toLocaleDateString()} • {' '}
-                                        {new Date(searchState.timeSlot.start_time).toLocaleTimeString([], { 
-                                            hour: '2-digit', 
-                                            minute: '2-digit' 
-                                        })} - {' '}
-                                        {new Date(searchState.timeSlot.end_time).toLocaleTimeString([], { 
-                                            hour: '2-digit', 
-                                            minute: '2-digit' 
-                                        })} • {' '}
-                                        Duration: {formatDuration(searchState.timeSlot.duration_minutes)}
-                                    </p>
+                                    <RoomSearchTimeSlotDisplay timeSlot={searchState.timeSlot} duration={searchState.timeSlot.duration_minutes} className={classes.ResultsSubtitle} />
                                 )}
                             </div>
 

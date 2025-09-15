@@ -5,14 +5,15 @@ import type { Booking, CreateBookingRequest, BookingResponse, BookingsListRespon
 function normalizeBooking(booking: any): Booking {
     return {
         ...booking,
-        _id: booking._id,
+        _id: booking._id || booking.id,
+        id: booking.id || booking._id,
         roomId: booking.room_id?._id || booking.roomId,
         roomName: booking.room_id?.name || booking.roomName || 'Unknown Room',
         startTime: new Date(booking.start_time || booking.startTime),
         endTime: new Date(booking.end_time || booking.endTime),
         description: booking.purpose || booking.description,
         bookedBy: booking.user_id?.name || booking.bookedBy || 'Unknown User',
-        userId: booking.user_id?._id || booking.userId,
+        userId: booking.user_id?._id || booking.user_id?.id || booking.userId,
         createdAt: new Date(booking.createdAt),
         updatedAt: booking.updatedAt ? new Date(booking.updatedAt) : undefined,
         status: booking.status || 'active'
@@ -45,21 +46,21 @@ class BookingService {
     }): Promise<BookingsListResponse> {
         try {
             const userId = params?.userId;
-            // ...existing code...
-            
+            console.log('BookingService.getUserBookings: userId =', userId);
             // Remove userId from params to avoid duplication in query string
             const { userId: _, ...queryParams } = params || {};
-            
-            const url = `/bookings/v1?employee=${userId}`; // Use 'employee' parameter instead of 'userId'
-            // ...existing code...
-            
+            const url = `/bookings/v1?employee=${userId}`; // Use 'employee' parameter to match backend
             const response = await api.get(url, { params: queryParams });
-            
-            // ...existing code...
-            
+            console.log('BookingService.getUserBookings: API response =', response.data);
             const extractedBookings = this.extractBookings(response.data);
-            // ...existing code...
-            
+            console.log('BookingService.getUserBookings: Extracted bookings =', extractedBookings.map(b => ({
+                id: b.id,
+                _id: b._id,
+                userId: b.userId,
+                roomName: b.roomName,
+                status: b.status
+            })));
+            console.log('BookingService.getUserBookings: Requesting user ID =', userId);
             return {
                 ...response.data,
                 bookings: extractedBookings
@@ -97,7 +98,23 @@ class BookingService {
             // ...existing code...
             const userSession = sessionStorage.getItem('currentUser');
             const response = await api.put(`/bookings/v1/${bookingId}`, updateData);
-            return response.data;
+            // Backend returns { success: true, message: "...", data: updatedBooking }
+            const rawBooking = response.data.data;
+            const normalizedBooking = normalizeBooking(rawBooking);
+            
+            console.log('📝 BookingService: updateBooking normalization:', {
+                raw: rawBooking,
+                normalized: normalizedBooking,
+                hasRawId: !!rawBooking?.id,
+                hasRaw_id: !!rawBooking?._id,
+                hasNormalizedId: !!normalizedBooking?.id,
+                hasNormalized_id: !!normalizedBooking?._id
+            });
+            
+            return {
+                booking: normalizedBooking,
+                message: response.data.message
+            };
         } catch (error: any) {
             console.error('❌ BookingService: Update booking error details:', {
                 status: error.response?.status,

@@ -39,7 +39,7 @@ api.interceptors.response.use(
       
       // Only redirect if not already on login or change-password page
       const currentPath = window.location.pathname;
-      if (currentPath !== '/login' && currentPath !== '/change-password') {
+      if (currentPath !== '/login' && currentPath !== '/changepassword') {
         console.log('Redirecting to login due to 401 error');
         window.location.href = '/login';
       }
@@ -63,8 +63,8 @@ api.interceptors.response.use(
         }
         
         const currentPath = window.location.pathname;
-        if (currentPath !== '/change-password') {
-          window.location.href = '/change-password';
+        if (currentPath !== '/changepassword') {
+          window.location.href = '/changepassword';
         }
       }
       // For other 403 errors, don't automatically clear session or redirect
@@ -82,7 +82,7 @@ export const register = (data: RegisterData) =>
   api.post<{ success: boolean; message: string; data: Employee }>('/users/v1/add', data);
 
 export const changePassword = (data: ChangePasswordData) =>
-  api.put<{ success: boolean; message: string }>('/auth/v1/change-password', data);
+  api.put<{ success: boolean; message: string }>('/auth/v1/changepassword', data);
 
 export const getMe = () => 
   api.get<{ success: boolean; message: string; data: Employee }>('/auth/v1/me');

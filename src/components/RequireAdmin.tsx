@@ -1,10 +1,10 @@
 "use client";
-import { useAuth } from '../context/AuthContext';
+import { useAuthStore } from '../store/authStore';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
 export default function RequireAdmin({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth();
+  const { user } = useAuthStore();
   const router = useRouter();
   
   useEffect(() => {

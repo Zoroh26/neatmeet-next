@@ -12,7 +12,7 @@ import { GenericTable } from '../../components/GenericTable';
 import RoomSearch from '../../components/RoomSearch';
 import { Booking } from '../../types/booking';
 import BookingService from '../../services/BookingServices';
-import { useAuth } from '../../context/AuthContext';
+import { useAuthStore } from '../../store/authStore';
 import { useBookingStore } from '../../store/bookingStore';
 
 // Zod schema for booking validation
@@ -58,7 +58,7 @@ const formatDateTime = (date: Date | string | null | undefined): string => {
 
 const classes = {
     // Container
-    Container: 'min-h-screen bg-white relative',
+    Container: 'min-h-screen bg-white relative pt-16',
     BackgroundElements: 'absolute inset-0 pointer-events-none overflow-hidden',
     BgShape1: 'absolute top-20 right-20 w-8 h-8 bg-red-500 opacity-20 transform rotate-45',
     BgShape2: 'absolute bottom-40 left-20 w-6 h-6 bg-red-500 opacity-15',
@@ -112,7 +112,7 @@ const BookingsPage: React.FC = () => {
     // Pagination state
     const [pageIndex, setPageIndex] = useState(0);
     const [pageSize] = useState(10);
-    const { user } = useAuth();
+    const { user } = useAuthStore();
     
     // Use Zustand store for bookings
     const { 
@@ -193,6 +193,8 @@ const BookingsPage: React.FC = () => {
         try {
             // Use store's createBooking method
             await createBookingInStore(bookingData);
+            // Refetch bookings to update the list
+            await fetchAllBookings();
             
             setBookingModal({ isOpen: false, room: null, timeSlot: null });
             reset();
@@ -406,12 +408,20 @@ const BookingsPage: React.FC = () => {
         {
             accessorKey: 'startTime',
             header: 'Date & Time',
-            cell: ({ row }) => (
-                <div className="font-bold text-black">
-                    <div>{formatDateTime(row.original.startTime)}</div>
-                    <div className="text-sm text-gray-600">to {formatDateTime(row.original.endTime)}</div>
-                </div>
-            ),
+            cell: ({ row }) => {
+                const [formattedStart, setFormattedStart] = React.useState('');
+                const [formattedEnd, setFormattedEnd] = React.useState('');
+                React.useEffect(() => {
+                    setFormattedStart(formatDateTime(row.original.startTime));
+                    setFormattedEnd(formatDateTime(row.original.endTime));
+                }, [row.original.startTime, row.original.endTime]);
+                return (
+                    <div className="font-bold text-black">
+                        <div>{formattedStart}</div>
+                        <div className="text-sm text-gray-600">to {formattedEnd}</div>
+                    </div>
+                );
+            },
         },
         {
             accessorKey: 'description',
@@ -565,16 +575,28 @@ const BookingsPage: React.FC = () => {
                     <div className="flex items-center gap-2">
                         
                         <button
-                            className={classes.CancelModalButton}
-                            onClick={() => setPageIndex(pageIndex - 1)}
-                            disabled={pageIndex === 0}
+                                                            className={
+                                                                pageIndex === 0
+                                                                    ? `${classes.CancelModalButton} bg-gray-300 text-gray-500 cursor-not-allowed`
+                                                                    : classes.CancelModalButton
+                                                            }
+                                                            onClick={() => setPageIndex(pageIndex - 1)}
+                                                            disabled={pageIndex === 0}
                         >
                             {'<'}
                         </button>
                         <button
-                            className={classes.CancelModalButton}
-                            onClick={() => setPageIndex(pageIndex + 1)}
-                            disabled={pageIndex >= totalPages - 1}
+                                                            className={
+                                                                pageIndex >= totalPages - 1 ||
+                                                                filteredBookings.slice((pageIndex + 1) * pageSize, (pageIndex + 2) * pageSize).length === 0
+                                                                    ? `${classes.CancelModalButton} bg-gray-300 text-gray-500 cursor-not-allowed`
+                                                                    : classes.CancelModalButton
+                                                            }
+                                                            onClick={() => setPageIndex(pageIndex + 1)}
+                                                            disabled={
+                                                                pageIndex >= totalPages - 1 ||
+                                                                filteredBookings.slice((pageIndex + 1) * pageSize, (pageIndex + 2) * pageSize).length === 0
+                                                            }
                         >
                             {'>'}
                         </button>

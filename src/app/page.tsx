@@ -36,7 +36,7 @@ export default function DashboardRoot() {
 
   // Render dashboard based on role
   if (user.role === 'admin') {
-    return <AdminComponent />;
+    return <div className="pt-16"><AdminComponent /></div>;
   }
-  return <EmployeeComponent />;
+  return <div className="pt-16"><EmployeeComponent /></div>;
 }

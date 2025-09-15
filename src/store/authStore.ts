@@ -35,9 +35,20 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       const response = await loginApi({ email, password });
       const { user, token } = response.data.data;
+      
+
+      
+      const userId = user.id || user.user_id || (user as any)._id;
+      console.log('🔍 Frontend AUTH LOGIN: user object =', user);
+      console.log('🔍 Frontend AUTH LOGIN: userId extracted =', userId);
+      
+      if (!userId) {
+        throw new Error('No valid user ID found in login response');
+      }
+      
       set({
         user: {
-          id: user.id,
+          id: userId,
           name: user.name,
           role: user.role,
           isInitialPassword: user.isInitialPassword ?? false,
@@ -47,7 +58,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         loading: false
       });
       if (typeof window !== 'undefined') {
-        sessionStorage.setItem('currentUser', JSON.stringify({ user, token }));
+        sessionStorage.setItem('currentUser', JSON.stringify({ user: { ...user, id: userId }, token }));
       }
     } catch (error: any) {
       set({ error: error.response?.data?.message || error.message, loading: false });
@@ -73,18 +84,32 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       const response = await getMe();
       const user = response.data.data;
-      // Get token from sessionStorage
+      // Get token and user data from sessionStorage
       let token = '';
+      let sessionUserId = '';
       if (typeof window !== 'undefined') {
         const sessionRaw = sessionStorage.getItem('currentUser');
         if (sessionRaw) {
           const sessionData = JSON.parse(sessionRaw);
           token = sessionData.token;
+          sessionUserId = sessionData.user?.id || '';
         }
       }
+      
+      // Prefer sessionStorage user ID (from login) over API response user ID
+      const userId = sessionUserId || user.id || user.user_id || (user as any)._id;
+      console.log('🔍 Frontend AUTH CHECKSESSION: user object =', user);
+      console.log('🔍 Frontend AUTH CHECKSESSION: sessionUserId =', sessionUserId);
+      console.log('🔍 Frontend AUTH CHECKSESSION: API user.id =', user.id);
+      console.log('🔍 Frontend AUTH CHECKSESSION: final userId extracted =', userId);
+      
+      if (!userId) {
+        throw new Error('No valid user ID found in checkSession response');
+      }
+      
       set({
         user: {
-          id: user.id,
+          id: userId,
           name: user.name,
           role: user.role,
           isInitialPassword: user.isInitialPassword ?? false,

@@ -1,5 +1,7 @@
-'use client';
+"use client";
 import React, { useState, useEffect } from "react";
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { FaPlus, FaTimes, FaDoorOpen, FaSpinner, FaTrash, FaEdit } from 'react-icons/fa';
 import { MdMeetingRoom } from 'react-icons/md';
 import Modal from 'react-modal';
@@ -8,10 +10,11 @@ import { ColumnDef } from '@tanstack/react-table';
 import type { Room } from '../../types/index';
 import RoomService from '../../services/RoomServices';
 import {useQuery} from '@tanstack/react-query';
+import { useRoomStore } from '../../store/roomStore';
 
 const classes = {
     // Clean container without overlap issues
-    Container: 'min-h-screen bg-white relative',
+    Container: 'min-h-screen bg-white relative pt-16',
     
     // Simple background elements that don't interfere
     BackgroundElements: 'absolute inset-0 pointer-events-none overflow-hidden',
@@ -120,6 +123,8 @@ function ClientOnlyModalSetup() {
 }
 
 const Rooms: React.FC = () => {
+    // Ensure modal setup runs only on client
+    ClientOnlyModalSetup();
     const [pageIndex, setPageIndex] = useState(0);
     const [pageSize] = useState(10);
     const [globalFilter, setGlobalFilter] = useState("");
@@ -128,13 +133,25 @@ const Rooms: React.FC = () => {
     const [capacityFilter, setCapacityFilter] = useState<string>("");
 
     // Use TanStack Query for data fetching
-    const { data: allRooms, isLoading, error, refetch } = useQuery({
-        queryKey: ["rooms"],
-        queryFn: fetchRooms,
-    });
+        const { setRooms, rooms } = useRoomStore();
+        const {
+            data: allRooms,
+            isLoading,
+            error,
+            refetch
+        } = useQuery({
+            queryKey: ["rooms"],
+            queryFn: fetchRooms,
+        });
 
-    // Client-side filtering and pagination
-    const filteredRooms = (allRooms || []).filter((room: Room) => {
+        useEffect(() => {
+            if (Array.isArray(allRooms)) {
+                setRooms(allRooms);
+            }
+        }, [allRooms, setRooms]);
+
+        // Client-side filtering and pagination
+        const filteredRooms = ((rooms && rooms.length) ? rooms : (Array.isArray(allRooms) ? allRooms : [])).filter((room: Room) => {
         let matches = true;
         if (globalFilter) {
             const search = globalFilter.toLowerCase();
@@ -323,11 +340,14 @@ const Rooms: React.FC = () => {
         try {
             const roomId = roomToDelete.id || (roomToDelete as any)._id;
             await RoomService.deleteRoom(roomId);
-            refetch();
-            setMessage({ type: 'success', text: `${roomToDelete.name} deleted successfully` });
-            setTimeout(() => setMessage(null), 3000);
-        } catch (error: any) {
-            setMessage({ type: 'error', text: 'Failed to delete room' });
+                        refetch();
+                        toast.success(`🎉 ${roomToDelete.name} deleted successfully`, {
+                            className: 'toast-success',
+                        });
+                } catch (error: any) {
+                        toast.error('❌ Failed to delete room', {
+                            className: 'toast-error',
+                        });
         } finally {
             setIsDeleteModalOpen(false);
             setRoomToDelete(null);
@@ -353,7 +373,9 @@ const Rooms: React.FC = () => {
                     description: formData.description.trim(),
                     amenities: formData.amenities,
                 });
-                setMessage({ type: 'success', text: 'Room updated successfully!' });
+                toast.success('🎉 Room updated successfully!', {
+                  className: 'toast-success',
+                });
             } else {
                 await RoomService.createRoom({
                     name: formData.name.trim(),
@@ -363,12 +385,16 @@ const Rooms: React.FC = () => {
                     amenities: formData.amenities,
                     status: 'available',
                 });
-                setMessage({ type: 'success', text: 'Room created successfully!' });
+                toast.success('🎉 Room created successfully!', {
+                  className: 'toast-success',
+                });
             }
             refetch();
             handleCloseModal();
         } catch (error: any) {
-            setMessage({ type: 'error', text: 'Failed to save room' });
+            toast.error('❌ Failed to save room', {
+              className: 'toast-error',
+            });
         } finally {
             setLoading(false);
         }
@@ -449,16 +475,28 @@ const Rooms: React.FC = () => {
                     <div className="flex items-center gap-2">
                         
                         <button
-                            className={classes.CancelButton}
-                            onClick={() => setPageIndex(pageIndex - 1)}
-                            disabled={pageIndex === 0}
+                                                            className={
+                                                                pageIndex === 0
+                                                                    ? `${classes.CancelButton} bg-gray-300 text-gray-500 cursor-not-allowed`
+                                                                    : classes.CancelButton
+                                                            }
+                                                            onClick={() => setPageIndex(pageIndex - 1)}
+                                                            disabled={pageIndex === 0}
                         >
                             {'<'}
                         </button>
                         <button
-                            className={classes.CancelButton}
-                            onClick={() => setPageIndex(pageIndex + 1)}
-                            disabled={pageIndex >= totalPages - 1}
+                                                            className={
+                                                                pageIndex >= totalPages - 1 ||
+                                                                filteredRooms.slice((pageIndex + 1) * pageSize, (pageIndex + 2) * pageSize).length === 0
+                                                                    ? `${classes.CancelButton} bg-gray-300 text-gray-500 cursor-not-allowed`
+                                                                    : classes.CancelButton
+                                                            }
+                                                            onClick={() => setPageIndex(pageIndex + 1)}
+                                                            disabled={
+                                                                pageIndex >= totalPages - 1 ||
+                                                                filteredRooms.slice((pageIndex + 1) * pageSize, (pageIndex + 2) * pageSize).length === 0
+                                                            }
                         >
                             {'>'}
                         </button>
@@ -491,11 +529,18 @@ const Rooms: React.FC = () => {
                 </div>
 
                 <div className={classes.ModalBody}>
-                    {message && (
-                        <div className={message.type === 'error' ? classes.ErrorMessage : classes.SuccessMessage}>
-                            {message.text}
-                        </div>
-                    )}
+                                        <ToastContainer
+                                            position="top-right"
+                                            autoClose={3000}
+                                            hideProgressBar={false}
+                                            newestOnTop={false}
+                                            closeOnClick
+                                            rtl={false}
+                                            pauseOnFocusLoss
+                                            draggable
+                                            pauseOnHover
+                                            className="neo-brutalism-toast-container"
+                                        />
 
                     <form onSubmit={handleSubmit} className={classes.Form}>
                         <div className={classes.FormRow}>

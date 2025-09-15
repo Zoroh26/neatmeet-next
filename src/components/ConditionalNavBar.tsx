@@ -1,11 +1,11 @@
 'use client';
 import { usePathname } from 'next/navigation';
-import { useAuth } from '../context/AuthContext';
+import { useAuthStore } from '../store/authStore';
 import NavBar from './NavBar';
 
 export default function ConditionalNavBar() {
     const pathname = usePathname();
-    const { user } = useAuth();
+    const { user, hasHydrated } = useAuthStore();
 
     // Routes where NavBar should NOT appear
     const noNavBarRoutes = ['/login'];
@@ -15,8 +15,8 @@ export default function ConditionalNavBar() {
         return null;
     }
 
-    // Don't show NavBar if user is not authenticated
-    if (!user) {
+    // Don't show NavBar if user is not authenticated or hydration not complete
+    if (!hasHydrated || !user) {
         return null;
     }
 

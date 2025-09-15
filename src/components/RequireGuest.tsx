@@ -1,10 +1,10 @@
 "use client";
-import { useAuth } from '../context/AuthContext';
+import { useAuthStore } from '../store/authStore';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
 const RequireGuest = ({ children }: { children: React.ReactNode }) => {
-  const { user } = useAuth();
+  const { user } = useAuthStore();
   const router = useRouter();
 
   useEffect(() => {

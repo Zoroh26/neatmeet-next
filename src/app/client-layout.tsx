@@ -1,6 +1,6 @@
 "use client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { AuthProvider } from "../context/AuthContext";
+// Removed legacy AuthProvider import
 import ConditionalNavBar from "../components/ConditionalNavBar";
 import { useEffect } from "react";
 import { useAuthStore } from "../store/authStore";
@@ -15,10 +15,8 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <ConditionalNavBar />
-        {children}
-      </AuthProvider>
+      <ConditionalNavBar />
+      {children}
     </QueryClientProvider>
   );
 }
