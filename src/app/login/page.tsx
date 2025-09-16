@@ -284,6 +284,13 @@ const LoginForm: React.FC = () => {
                             LOG IN
                         </button>
                     </form>
+                    {/* Forgot Password Link */}
+                    <button
+                        className="mt-6 text-blue-600 underline font-bold"
+                        onClick={() => router.push('/resetpassword')}
+                    >
+                        Forgot password?
+                    </button>
                 </div>
             </div>
         </div>
