@@ -3,11 +3,11 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { FaLock, FaEye, FaEyeSlash, FaSpinner } from 'react-icons/fa';
 import { changePassword } from '../../services/api';
-import { useAuth } from '../../context/AuthContext';
+import { useAuthStore } from '../../store/authStore';
 
 const classes = {
     // Page Container
-    Container: 'min-h-screen bg-white flex items-center justify-center p-8',
+    Container: 'min-h-screen bg-white flex items-center justify-center p-8 pt-16',
     FormContainer: 'bg-white border-4 border-black max-w-md w-full shadow-[16px_16px_0px_0px_#000]',
     
     // Header
@@ -44,7 +44,7 @@ interface ChangePasswordFormData {
 
 const ChangePassword: React.FC = () => {
     const router = useRouter();
-    const { user, updateUser, logout } = useAuth();
+    const { user, logout } = useAuthStore();
     const [formData, setFormData] = useState<ChangePasswordFormData>({
         oldPassword: '',
         newPassword: '',
@@ -122,7 +122,7 @@ const ChangePassword: React.FC = () => {
             const sessionData = JSON.parse(sessionStorage.getItem('currentUser') || '{}');
             if (sessionData.user && user) {
                 const updatedUser = { ...user, isInitialPassword: false };
-                updateUser(updatedUser);
+                // No updateUser in Zustand store; session will update on next login
             }
 
             setMessage({ type: 'success', text: 'Password changed successfully! Logging you out...' });

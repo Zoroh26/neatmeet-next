@@ -11,7 +11,7 @@ import BookingList from './BookingList';
 import { useRouter } from 'next/navigation';
 
 const classes = {
-    Container: 'p-8 bg-bg-primary min-h-screen',
+    Container: 'p-8 bg-bg-primary min-h-screen pt-16',
     Header: 'mb-8',
     Title: 'text-4xl font-black text-text-primary mb-2 uppercase tracking-widest',
     Subtitle: 'text-lg text-text-secondary font-bold uppercase tracking-wide mb-8',
@@ -134,15 +134,7 @@ export const EmployeeComponent: React.FC = () => {
                 </div>
             </div>
 
-            {/* Bookings Section */}
-            <div className="mt-12">
-                <h2 className={classes.SectionTitle}>All Bookings</h2>
-                <BookingList
-                    bookings={bookings}
-                    bookingsLoading={bookingsLoading}
-                    getRoomById={getRoomById}
-                />
-            </div>
+            
         </div>
     );
 };

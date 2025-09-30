@@ -1,6 +1,6 @@
 
 import { create } from 'zustand';
-import { login as loginApi, logout as logoutApi, getMe, changePassword as changePasswordApi } from '../services/api';
+import { login as loginApi, logout as logoutApi, changePassword as changePasswordApi } from '../services/api';
 
 type User = {
   id: string;
@@ -35,9 +35,20 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       const response = await loginApi({ email, password });
       const { user, token } = response.data.data;
+      
+
+      
+      const userId = user.id || user.user_id || (user as any)._id;
+      console.log('🔍 Frontend AUTH LOGIN: user object =', user);
+      console.log('🔍 Frontend AUTH LOGIN: userId extracted =', userId);
+      
+      if (!userId) {
+        throw new Error('No valid user ID found in login response');
+      }
+      
       set({
         user: {
-          id: user.id,
+          id: userId,
           name: user.name,
           role: user.role,
           isInitialPassword: user.isInitialPassword ?? false,
@@ -47,7 +58,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         loading: false
       });
       if (typeof window !== 'undefined') {
-        sessionStorage.setItem('currentUser', JSON.stringify({ user, token }));
+        sessionStorage.setItem('currentUser', JSON.stringify({ user: { ...user, id: userId }, token }));
       }
     } catch (error: any) {
       set({ error: error.response?.data?.message || error.message, loading: false });
@@ -71,23 +82,26 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   checkSession: async () => {
     set({ loading: true, error: null });
     try {
-      const response = await getMe();
-      const user = response.data.data;
-      // Get token from sessionStorage
+      // Only use sessionStorage for session validation
       let token = '';
+      let sessionUser = null;
       if (typeof window !== 'undefined') {
         const sessionRaw = sessionStorage.getItem('currentUser');
         if (sessionRaw) {
           const sessionData = JSON.parse(sessionRaw);
           token = sessionData.token;
+          sessionUser = sessionData.user;
         }
+      }
+      if (!sessionUser || !token) {
+        throw new Error('No valid session found');
       }
       set({
         user: {
-          id: user.id,
-          name: user.name,
-          role: user.role,
-          isInitialPassword: user.isInitialPassword ?? false,
+          id: sessionUser.id,
+          name: sessionUser.name,
+          role: sessionUser.role,
+          isInitialPassword: sessionUser.isInitialPassword ?? false,
           token,
         },
         isLoggedIn: true,

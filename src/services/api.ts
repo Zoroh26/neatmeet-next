@@ -63,8 +63,8 @@ api.interceptors.response.use(
         }
         
         const currentPath = window.location.pathname;
-        if (currentPath !== '/change-password') {
-          window.location.href = '/change-password';
+        if (currentPath !== '/changepassword') {
+          window.location.href = '/changepassword';
         }
       }
       // For other 403 errors, don't automatically clear session or redirect

@@ -62,7 +62,14 @@ export const useBookingStore = create<BookingState>((set, get) => ({
     set({ loading: true, error: null });
     try {
       const userBookingsResponse = await bookingService.getUserBookings({ userId });
-      const validBookings = userBookingsResponse.bookings.filter(booking => booking && booking._id);
+      
+      const validBookings = userBookingsResponse.bookings.filter(booking => {
+        const hasId = booking && booking._id;
+        const userIdMatches = booking.userId === userId;
+        const isNotCancelled = booking.status !== 'cancelled';
+        return hasId && userIdMatches && isNotCancelled;
+      });
+      
       set({ userBookings: validBookings, loading: false });
     } catch (error: any) {
       set({ error: 'Failed to load user bookings: ' + (error.response?.data?.message || error.message), loading: false });
@@ -87,11 +94,32 @@ export const useBookingStore = create<BookingState>((set, get) => ({
     try {
       const response = await bookingService.updateBooking(bookingId, updateData);
       const updatedBooking = response.booking;
-      set((state) => ({
-        bookings: state.bookings.map(b => b._id === updatedBooking._id ? updatedBooking : b),
-        userBookings: state.userBookings.map(b => b._id === updatedBooking._id ? updatedBooking : b),
-        loading: false
-      }));
+      if (!updatedBooking) {
+        set({ error: 'Failed to update booking: No booking returned from API', loading: false });
+        throw new Error('No booking returned from API');
+      }
+      
+      set((state) => {
+        const matchId = updatedBooking._id ?? updatedBooking.id;
+        
+        const updatedBookings = state.bookings.map(b => {
+          if (!b) return b;
+          const isMatch = (b._id === matchId || b.id === matchId);
+          return isMatch ? updatedBooking : b;
+        });
+        
+        const updatedUserBookings = state.userBookings.map(b => {
+          if (!b) return b;
+          const isMatch = (b._id === matchId || b.id === matchId);
+          return isMatch ? updatedBooking : b;
+        });
+        
+        return {
+          bookings: updatedBookings,
+          userBookings: updatedUserBookings,
+          loading: false
+        };
+      });
       return updatedBooking;
     } catch (error: any) {
       set({ error: 'Failed to update booking: ' + (error.response?.data?.message || error.message), loading: false });
