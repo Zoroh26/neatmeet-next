@@ -811,7 +811,7 @@ const Employees = () => {
               </div>
               <div className={classes.DeleteModalBody}>
                   <p className={classes.DeleteModalText}>
-                      Are you sure you want to delete "<strong>{employeeToDelete?.name}</strong>"?
+                      Are you sure you want to delete &quot;<strong>{employeeToDelete?.name}</strong>&quot;?
                       <br />
                       <br />
                       This action cannot be undone.

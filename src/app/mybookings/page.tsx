@@ -190,7 +190,7 @@ const MyBookings: React.FC = () => {
     // Load user's bookings and rooms
     useEffect(() => {
         loadUserData();
-    }, [user]);
+    }, [user, loadUserData]);
 
     // Get room by ID
     const getRoomById = (roomId: string): Room | undefined => {
@@ -669,7 +669,7 @@ const MyBookings: React.FC = () => {
                 <div className={classes.ModalBody}>
                     <p className="text-lg mb-6 text-center">
                         Are you sure you want to cancel the booking for{' '}
-                        <strong>"{bookingToCancel?.roomName}"</strong>?
+                        <strong>&quot;{bookingToCancel?.roomName}&quot;</strong>?
                     </p>
                     <p className="text-sm text-gray-600 mb-6 text-center">
                         This action cannot be undone.

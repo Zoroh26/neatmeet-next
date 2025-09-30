@@ -685,7 +685,7 @@ const Rooms: React.FC = () => {
                 </div>
                 <div className={classes.DeleteModalBody}>
                     <p className={classes.DeleteModalText}>
-                        Are you sure you want to delete "<strong>{roomToDelete?.name}</strong>"?
+                        Are you sure you want to delete &quot;<strong>{roomToDelete?.name}</strong>&quot;?
                         <br />
                         <br />
                         This action cannot be undone.
