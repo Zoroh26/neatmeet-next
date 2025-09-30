@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '../store/authStore';
 
@@ -9,7 +9,6 @@ import { EmployeeComponent } from '../components/EmployeeComponent';
 export default function DashboardRoot() {
   const { user, isLoggedIn, hasHydrated } = useAuthStore();
   const router = useRouter();
-  // ...existing code...
 
   useEffect(() => {
     if (!hasHydrated) return;

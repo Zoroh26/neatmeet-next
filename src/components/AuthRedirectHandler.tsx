@@ -3,16 +3,14 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useAuthStore } from '../store/authStore';
 import { useEffect } from 'react';
 
+// Define routes outside component to prevent recreation on every render
+const adminRoutes = ['/admin', '/employees', '/rooms'];
+const authRoutes = ['/admin', '/employees', '/rooms', '/bookings', '/mybookings', '/employeepage', '/dashboard', '/changepassword'];
+
 export default function AuthRedirectHandler({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
     const router = useRouter();
     const { user, isLoggedIn, hasHydrated } = useAuthStore();
-
-    // Admin-only routes (keeping legacy routes for now)
-    const adminRoutes = ['/admin', '/employees', '/rooms'];
-    
-    // Routes that require authentication (both admin and employee can access)
-    const authRoutes = ['/admin', '/employees', '/rooms', '/bookings', '/mybookings', '/employeepage', '/dashboard', '/changepassword'];
 
     useEffect(() => {
         // Don't run redirects until store has hydrated to prevent loops
