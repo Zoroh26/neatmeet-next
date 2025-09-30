@@ -1,6 +1,6 @@
 'use client';
 import '../globals.css';
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useAuthStore } from '../../store/authStore';
 import { 
     FaTimes,
@@ -147,15 +147,8 @@ const MyBookings: React.FC = () => {
     
     const { user } = useAuthStore();
 
-    // Fetch bookings when user is available
-    useEffect(() => {
-        if (user?.id) {
-            fetchUserBookings(user.id);
-        }
-    }, [user, fetchUserBookings]);
-
     // Load user's bookings and rooms function
-    const loadUserData = async () => {
+    const loadUserData = useCallback(async () => {
         if (!user?.id) return;
         
         try {
@@ -178,7 +171,7 @@ const MyBookings: React.FC = () => {
         } finally {
             setRoomsLoading(false);
         }
-    };
+    }, [user?.id, fetchUserBookings]);
 
     // Handle bookings error from store
     useEffect(() => {
@@ -190,7 +183,7 @@ const MyBookings: React.FC = () => {
     // Load user's bookings and rooms
     useEffect(() => {
         loadUserData();
-    }, [user, loadUserData]);
+    }, [loadUserData]);
 
     // Get room by ID
     const getRoomById = (roomId: string): Room | undefined => {
