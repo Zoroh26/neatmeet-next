@@ -1,4 +1,5 @@
 'use client';
+import '../globals.css';
 import React, { useState, useEffect, useMemo } from 'react';
 import { useAuthStore } from '../../store/authStore';
 import { 
@@ -16,7 +17,8 @@ import RoomService from '../../services/RoomServices';
 import type { Room } from '../../types/index';
 import type { Booking } from '../../types/booking';
 import { useBookingStore } from '../../store/bookingStore';
-import { toast } from 'react-toastify';
+import { toast, ToastContainer } from 'react-toastify';
+
 
 const classes = {
     // Page Container
@@ -147,16 +149,8 @@ const MyBookings: React.FC = () => {
 
     // Fetch bookings when user is available
     useEffect(() => {
-        console.log('MyBookings useEffect: user =', user);
-        console.log('MyBookings useEffect: user.id type =', typeof user?.id);
-        console.log('MyBookings useEffect: user.id length =', user?.id?.length);
-        console.log('MyBookings useEffect: user object keys =', user ? Object.keys(user) : 'no user');
         if (user?.id) {
-            console.log('MyBookings useEffect: fetching bookings for user.id =', user.id);
-            console.log('MyBookings useEffect: user.id character by character =', user.id.split('').map((c, i) => `${i}:${c}`));
             fetchUserBookings(user.id);
-        } else {
-            console.log('MyBookings useEffect: user.id not available, skipping fetchUserBookings');
         }
     }, [user, fetchUserBookings]);
 
@@ -177,7 +171,6 @@ const MyBookings: React.FC = () => {
             setRooms(roomsData);
             
         } catch (error: any) {
-            console.error('❌ Failed to load user data:', error);
             // Only handle room loading errors here, booking errors are handled by the store
             if (error.message && !error.message.includes('bookings')) {
                 toast.error('Failed to load rooms data: ' + (error.response?.data?.message || error.message));
@@ -225,14 +218,6 @@ const MyBookings: React.FC = () => {
             // No need to refresh - the store already removes the booking
             
         } catch (error: any) {
-            console.error('❌ Failed to cancel booking:', error);
-            console.error('❌ Error details:', {
-                status: error.response?.status,
-                statusText: error.response?.statusText,
-                data: error.response?.data,
-                message: error.message
-            });
-            
             let errorMessage = 'Failed to cancel booking';
             let shouldRemoveFromList = false;
             
@@ -370,8 +355,6 @@ const MyBookings: React.FC = () => {
             setEditingBooking(null);
             
         } catch (error: any) {
-            console.error('❌ Failed to update booking:', error);
-            
             let errorMessage = 'Failed to update booking';
             
             if (error.response?.status === 403) {
@@ -411,7 +394,6 @@ const MyBookings: React.FC = () => {
                 const startTime = booking.startTime instanceof Date ? booking.startTime : new Date(booking.startTime);
                 return startTime > now;
             } catch (error) {
-                console.warn('MyBookings - Invalid startTime for booking:', booking);
                 return false;
             }
         });
@@ -421,15 +403,8 @@ const MyBookings: React.FC = () => {
                 const startTime = booking.startTime instanceof Date ? booking.startTime : new Date(booking.startTime);
                 return startTime <= now;
             } catch (error) {
-                console.warn('MyBookings - Invalid startTime for booking:', booking);
                 return false;
             }
-        });
-        
-        console.log('📊 MyBookings - Final results:', {
-            total: bookings.length,
-            upcoming: upcoming.length,
-            past: past.length
         });
         
         return {
@@ -490,7 +465,10 @@ const MyBookings: React.FC = () => {
     ], [columns, cancelLoading]);
 
     return (
-        <div className={classes.Container}>
+        <>
+            
+           
+            <div className={classes.Container}>
             <div className={classes.Header}>
                 <h1 className={classes.Title}>My Bookings</h1>
                 <p className={classes.Subtitle}>
@@ -498,6 +476,18 @@ const MyBookings: React.FC = () => {
                     Your Personal Meeting Schedule
                 </p>
             </div>
+            <ToastContainer
+                position="top-right"
+                autoClose={3000}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+                className="neo-brutalism-toast-container pt-16 border-2"
+                                        />
             {/* Tab Buttons */}
             <div className="flex gap-4 mb-8">
                 <button
@@ -711,7 +701,8 @@ const MyBookings: React.FC = () => {
                     </div>
                 </div>
             </Modal>
-        </div>
+            </div>
+        </>
     );
 };
 

@@ -633,7 +633,7 @@ const Employees = () => {
                       </div>
                       <div className={classes.FormGroup}>
                           <label htmlFor="designation" className={classes.Label}>
-                              Designation
+                              Designation*
                           </label>
                           <input
                               type="text"

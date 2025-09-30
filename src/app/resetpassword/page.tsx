@@ -44,7 +44,6 @@ const ResetPasswordPage: React.FC = () => {
               </button>
             </>
           )}
-          {success && <div className="mt-4 text-green-600 font-bold">{success}</div>}
         </div>
       </div>
     </div>

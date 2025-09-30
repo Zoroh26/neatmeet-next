@@ -61,28 +61,15 @@ export const useBookingStore = create<BookingState>((set, get) => ({
   fetchUserBookings: async (userId) => {
     set({ loading: true, error: null });
     try {
-      console.log('🔍 BookingStore: fetchUserBookings called with userId =', userId);
       const userBookingsResponse = await bookingService.getUserBookings({ userId });
-      console.log('🔍 BookingStore: Raw bookings from API =', userBookingsResponse.bookings.length);
       
       const validBookings = userBookingsResponse.bookings.filter(booking => {
         const hasId = booking && booking._id;
         const userIdMatches = booking.userId === userId;
         const isNotCancelled = booking.status !== 'cancelled';
-        console.log('🔍 BookingStore: Filtering booking =', {
-          bookingId: booking?._id,
-          bookingUserId: booking?.userId,
-          requestedUserId: userId,
-          status: booking?.status,
-          hasId,
-          userIdMatches,
-          isNotCancelled,
-          keep: hasId && userIdMatches && isNotCancelled
-        });
         return hasId && userIdMatches && isNotCancelled;
       });
       
-      console.log('🔍 BookingStore: Final valid bookings =', validBookings.length);
       set({ userBookings: validBookings, loading: false });
     } catch (error: any) {
       set({ error: 'Failed to load user bookings: ' + (error.response?.data?.message || error.message), loading: false });
@@ -112,42 +99,19 @@ export const useBookingStore = create<BookingState>((set, get) => ({
         throw new Error('No booking returned from API');
       }
       
-      console.log('🔄 BookingStore: Updating booking in state:', {
-        bookingId,
-        updatedBooking,
-        hasId: !!updatedBooking.id,
-        has_id: !!updatedBooking._id
-      });
-      
       set((state) => {
-        console.log('🔄 BookingStore: Current state before update:', {
-          bookingsCount: state.bookings.length,
-          userBookingsCount: state.userBookings.length
-        });
-        
         const matchId = updatedBooking._id ?? updatedBooking.id;
         
         const updatedBookings = state.bookings.map(b => {
           if (!b) return b;
           const isMatch = (b._id === matchId || b.id === matchId);
-          if (isMatch) {
-            console.log('🔄 BookingStore: Matching booking found in bookings array:', { oldBooking: b, newBooking: updatedBooking });
-          }
           return isMatch ? updatedBooking : b;
         });
         
         const updatedUserBookings = state.userBookings.map(b => {
           if (!b) return b;
           const isMatch = (b._id === matchId || b.id === matchId);
-          if (isMatch) {
-            console.log('🔄 BookingStore: Matching booking found in userBookings array:', { oldBooking: b, newBooking: updatedBooking });
-          }
           return isMatch ? updatedBooking : b;
-        });
-        
-        console.log('🔄 BookingStore: State after update:', {
-          bookingsCount: updatedBookings.length,
-          userBookingsCount: updatedUserBookings.length
         });
         
         return {

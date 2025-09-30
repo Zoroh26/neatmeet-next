@@ -238,11 +238,7 @@ const BookingsPage: React.FC = () => {
             booking.startTime && 
             (typeof booking.startTime === 'string' || booking.startTime instanceof Date)
         );
-        // Debug log: print all booking start times and current date
-        console.log('🕒 Current date:', now.toISOString());
-        validBookings.forEach((booking, idx) => {
-            console.log(`Booking #${idx}: startTime=${booking.startTime}, parsed=${new Date(booking.startTime).toISOString()}`);
-        });
+        
         const upcoming = validBookings.filter(booking => {
             try {
                 const bookingStartTime = new Date(booking.startTime);
@@ -260,11 +256,7 @@ const BookingsPage: React.FC = () => {
                 return false;
             }
         });
-        console.log('📊 Bookings split results:', {
-            total: validBookings.length,
-            upcoming: upcoming.length,
-            past: past.length
-        });
+        
         return { upcomingBookings: upcoming, pastBookings: past };
     }, [bookings]);
 
@@ -305,8 +297,6 @@ const BookingsPage: React.FC = () => {
 
   
     const handleBookRoom = (room: any, timeSlot: any) => {
-        console.log('📝 Booking room with data:', { room, timeSlot });
-        
         // Open booking modal with room and time slot details
         setBookingModal({
             isOpen: true,
@@ -347,9 +337,6 @@ const BookingsPage: React.FC = () => {
             roomId = bookingModal.room.id || bookingModal.room.roomId || bookingModal.room.room_id;
         }
 
-        console.log('🏠 Full room object:', bookingModal.room);
-        console.log('🔑 Available room properties:', Object.keys(bookingModal.room));
-
         // Format the booking data according to API requirements
         // Create Date objects to validate, but preserve original datetime-local strings for API
         const startDateTime = new Date(data.startTime);
@@ -372,17 +359,6 @@ const BookingsPage: React.FC = () => {
             purpose: data.description,
         };
 
-        console.log('🚀 Submitting booking data:', bookingData);
-        console.log('🆔 Using room ID:', roomId, 'Type:', typeof roomId, 'Length:', roomId?.length);
-        console.log('📅 Formatted times:', {
-            originalStart: data.startTime,
-            originalEnd: data.endTime,
-            localDate: localDate,
-            preservedStartTime: preserveLocalTime(data.startTime),
-            preservedEndTime: preserveLocalTime(data.endTime),
-            oldIsoStart: startDateTime.toISOString(),
-            oldIsoEnd: endDateTime.toISOString()
-        });
         handleCreateBooking(bookingData);
     };
 

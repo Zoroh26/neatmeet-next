@@ -12,7 +12,7 @@ const ForgotPasswordForm: React.FC<{ onSuccess: () => void }> = ({ onSuccess }) 
     setError('');
     setMessage('');
     try {
-      const res = await fetch('/api/auth/v1/forgot-password', {
+      const res = await fetch('http://localhost:4000/api/auth/v1/forgot-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
